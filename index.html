@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sequoia Softball Lineup</title>
+
+  <style>
+    body{
+      margin:0;
+      background:#0f172a;
+      color:#e2e8f0;
+      font-family:system-ui,sans-serif;
+    }
+
+    .app{
+      max-width:600px;
+      margin:auto;
+      height:100vh;
+      position:relative;
+    }
+
+    .header{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      max-width:600px;
+      margin:auto;
+      background:#1e293b;
+      padding:10px;
+      border-bottom:1px solid #334155;
+      z-index:10;
+      box-sizing:border-box;
+    }
+
+    .addbar{
+      display:flex;
+      gap:6px;
+      margin-bottom:6px;
+    }
+
+    #teamName,
+    #name{
+      flex:1;
+      min-width:0;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #334155;
+      background:#0f172a;
+      color:white;
+      box-sizing:border-box;
+    }
+
+    #num{
+      width:60px;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #334155;
+      background:#0f172a;
+      color:white;
+      text-align:center;
+      box-sizing:border-box;
+    }
+
+    #add{
+      width:45px;
+      flex:0 0 45px;
+      background:#f97316;
+      border:none;
+      border-radius:8px;
+      color:white;
+      font-size:20px;
+    }
+
+    .controls{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .ctrl{
+      flex:1;
+      padding:8px;
+      border:none;
+      border-radius:8px;
+      background:#334155;
+      color:white;
+      font-size:.8rem;
+      min-width:0;
+    }
+
+    .ctrl.danger{
+      background:#b91c1c;
+    }
+
+    .content{
+      position:absolute;
+      top:143px;
+      bottom:60px;
+      left:0;
+      right:0;
+      overflow:auto;
+      padding:10px;
+      box-sizing:border-box;
+    }
+
+    .statusBar{
+      margin-bottom:10px;
+      padding:8px 10px;
+      border-radius:8px;
+      font-size:.85rem;
+      background:#1e293b;
+      border:1px solid #334155;
+      color:#cbd5e1;
+    }
+
+    .statusBar.good{
+      color:#86efac;
+    }
+
+    .statusBar.bad{
+      color:#fca5a5;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .row{
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:10px;
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .row.empty{
+      color:#94a3b8;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+    }
+
+    .cell{
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:10px;
+      padding:12px;
+      text-align:center;
+      min-height:68px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:4px;
+    }
+
+    .pos{
+      color:#f97316;
+      font-weight:700;
+    }
+
+    .sectionTitle{
+      margin-top:14px;
+      margin-bottom:6px;
+      color:#f97316;
+      font-weight:600;
+    }
+
+    .inningTabs{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      margin-bottom:12px;
+    }
+
+    .inningTab{
+      padding:10px 8px;
+      border:none;
+      border-radius:8px;
+      background:#334155;
+      color:#cbd5e1;
+      font-size:.85rem;
+    }
+
+    .inningTab.active{
+      background:#f97316;
+      color:white;
+      font-weight:700;
+    }
+
+    .inningLabel{
+      margin-bottom:8px;
+      color:#cbd5e1;
+      font-size:.9rem;
+      font-weight:600;
+    }
+
+    .tabs{
+      position:fixed;
+      bottom:0;
+      left:0;
+      right:0;
+      max-width:600px;
+      margin:auto;
+      background:#1e293b;
+      border-top:1px solid #334155;
+      display:flex;
+    }
+
+    .tab{
+      flex:1;
+      background:none;
+      border:none;
+      padding:10px 6px;
+      color:#94a3b8;
+      font-size:.82rem;
+    }
+
+    .tab.active{
+      color:#f97316;
+    }
+
+    .panel{
+      display:none;
+    }
+
+    .panel.active{
+      display:block;
+    }
+
+    .modal{
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,.6);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+      padding:16px;
+      box-sizing:border-box;
+    }
+
+    .modalBox{
+      background:#1e293b;
+      width:100%;
+      max-width:420px;
+      max-height:75vh;
+      overflow:auto;
+      border-radius:12px;
+      border:1px solid #334155;
+    }
+
+    .modalHeader{
+      padding:12px;
+      font-weight:700;
+      border-bottom:1px solid #334155;
+      text-align:center;
+      position:sticky;
+      top:0;
+      background:#1e293b;
+      z-index:1;
+    }
+
+    .modalItem{
+      padding:12px;
+      border-bottom:1px solid #334155;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .modalItem span:last-child{
+      color:#f97316;
+      font-weight:600;
+      white-space:nowrap;
+    }
+
+    .modalActions{
+      display:flex;
+      gap:8px;
+      padding:12px;
+      border-top:1px solid #334155;
+      position:sticky;
+      bottom:0;
+      background:#1e293b;
+    }
+
+    .modalBtn{
+      flex:1;
+      padding:10px;
+      border:none;
+      border-radius:8px;
+      background:#334155;
+      color:white;
+    }
+
+    .modalBtn.danger{
+      background:#b91c1c;
+    }
+
+    .modalBtn.orange{
+      background:#f97316;
+      color:white;
+    }
+
+    .teamActions{
+      display:flex;
+      gap:6px;
+      flex-shrink:0;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .miniBtn{
+      padding:6px 10px;
+      border:none;
+      border-radius:6px;
+      background:#334155;
+      color:white;
+      font-size:.8rem;
+    }
+
+    .miniBtn.danger{
+      background:#b91c1c;
+    }
+
+    .miniBtn.orange{
+      background:#f97316;
+      color:white;
+    }
+
+    .standingsForm{
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:10px;
+      padding:10px;
+      margin-bottom:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .standingsRow{
+      display:grid;
+      grid-template-columns:1fr 1fr 110px 52px;
+      gap:8px;
+    }
+
+    .standingsInput{
+      width:100%;
+      min-width:0;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #334155;
+      background:#0f172a;
+      color:white;
+      box-sizing:border-box;
+    }
+
+    .gameCard{
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:10px;
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .gameMain{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+
+    .gameTeams{
+      font-weight:600;
+      word-break:break-word;
+    }
+
+    .gameScore{
+      color:#cbd5e1;
+      font-size:.9rem;
+    }
+
+    .gameResult{
+      color:#f97316;
+      font-weight:700;
+      white-space:nowrap;
+      font-size:.9rem;
+    }
+
+    .recordCard{
+      margin-top:12px;
+      background:#1e293b;
+      border:1px solid #334155;
+      border-radius:10px;
+      padding:14px;
+      text-align:center;
+    }
+
+    .recordTitle{
+      color:#94a3b8;
+      font-size:.85rem;
+      margin-bottom:6px;
+    }
+
+    .recordValue{
+      font-size:1.2rem;
+      font-weight:800;
+      color:#f97316;
+    }
+
+    .standingsHint{
+      color:#94a3b8;
+      font-size:.8rem;
+    }
+
+    #printSheet{
+      display:none;
+    }
+
+    @media print{
+      html, body{
+        margin:0;
+        padding:0;
+        background:white;
+        color:black;
+        height:auto;
+      }
+
+      body > *:not(#printSheet){
+        display:none !important;
+      }
+
+      #printSheet{
+        display:block !important;
+        padding:16px;
+        color:black;
+        background:white;
+        box-sizing:border-box;
+      }
+
+      #printSheet h2,
+      #printSheet h3{
+        margin:0 0 10px 0;
+      }
+
+      #printSheet h3{
+        margin-top:18px;
+      }
+
+      #printSheet table{
+        width:100%;
+        border-collapse:collapse;
+        margin-bottom:14px;
+        page-break-inside:avoid;
+      }
+
+      #printSheet th,
+      #printSheet td{
+        border:1px solid #000;
+        padding:6px;
+        text-align:left;
+        font-size:14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+
+    <div class="header">
+      <div class="addbar" style="margin-bottom:8px;">
+        <input id="teamName" placeholder="Team name" />
+      </div>
+
+      <div class="addbar">
+        <input id="name" placeholder="Player name" />
+        <input id="num" placeholder="#" />
+        <button id="add" type="button">+</button>
+      </div>
+
+      <div class="controls">
+        <button class="ctrl" id="clearBat" type="button">Clear Bat</button>
+        <button class="ctrl" id="clearDef" type="button">Clear Def Inning</button>
+        <button class="ctrl danger" id="reset" type="button">Reset</button>
+        <button class="ctrl" id="print" type="button">Print</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div id="statusBar" class="statusBar">Connecting…</div>
+
+      <div id="batPanel" class="panel active">
+        <div id="batList" class="list"></div>
+      </div>
+
+      <div id="defPanel" class="panel">
+        <div id="inningTabs" class="inningTabs"></div>
+        <div id="inningLabel" class="inningLabel">Inning 1 Defense</div>
+
+        <div id="defGrid" class="grid"></div>
+
+        <div class="sectionTitle">Bench</div>
+        <div id="benchList" class="list"></div>
+
+        <div class="sectionTitle">Absent</div>
+        <div id="absentList" class="list"></div>
+      </div>
+
+      <div id="teamPanel" class="panel">
+        <div id="teamList" class="list"></div>
+      </div>
+
+      <div id="standingsPanel" class="panel">
+        <div class="standingsForm">
+          <div class="standingsRow">
+            <input id="homeTeam" class="standingsInput" placeholder="Home" />
+            <input id="awayTeam" class="standingsInput" placeholder="Away" />
+            <input id="gameScore" class="standingsInput" placeholder="8-6" />
+            <button id="addGameBtn" class="miniBtn orange" type="button">Add</button>
+          </div>
+          <div class="standingsHint">Score format: Home-Away (example: 8-6)</div>
+        </div>
+
+        <div id="gamesList" class="list"></div>
+
+        <div class="recordCard">
+          <div class="recordTitle">Team Record</div>
+          <div id="recordSummary" class="recordValue">0 / 0 / 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-panel="batPanel" type="button">Batting</button>
+      <button class="tab" data-panel="defPanel" type="button">Defense</button>
+      <button class="tab" data-panel="teamPanel" type="button">Team</button>
+      <button class="tab" data-panel="standingsPanel" type="button">Standings</button>
+    </div>
+  </div>
+
+  <div id="picker" class="modal">
+    <div class="modalBox">
+      <div class="modalHeader" id="pickerTitle">Select Player</div>
+      <div id="pickerList"></div>
+      <div class="modalActions">
+        <button id="clearAssignmentBtn" class="modalBtn" type="button">Clear</button>
+        <button id="returnPlayerBtn" class="modalBtn orange" type="button">Return</button>
+        <button id="closePickerBtn" class="modalBtn danger" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="printSheet">
+    <h2>Lineup Card</h2>
+
+    <h3>Batting Order</h3>
+    <table id="printBat"></table>
+
+    <div id="printDefenseWrap"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD8Ej8PYvs4B23npbzFBBC7TCQ2OfACKS0",
+      authDomain: "lineup-4d34e.firebaseapp.com",
+      databaseURL: "https://lineup-4d34e-default-rtdb.firebaseio.com",
+      projectId: "lineup-4d34e",
+      storageBucket: "lineup-4d34e.firebasestorage.app",
+      messagingSenderId: "687150384681",
+      appId: "1:687150384681:web:763f11538595298936fe38",
+      measurementId: "G-Q790YR62MH"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const slots = 12;
+    const inningCount = 6;
+    const positions = ["P","C","1B","2B","SS","3B","LF","CF","RF"];
+
+    function emptyDefense() {
+      return {
+        P: null,
+        C: null,
+        "1B": null,
+        "2B": null,
+        SS: null,
+        "3B": null,
+        LF: null,
+        CF: null,
+        RF: null
+      };
+    }
+
+    const defaultState = () => ({
+      teamName: "Sequoia",
+      players: [],
+      bat: Array(slots).fill(null),
+      defenses: Array.from({ length: inningCount }, () => emptyDefense()),
+      absent: [],
+      games: []
+    });const teamNameInput = document.getElementById("teamName");
+    const nameInput = document.getElementById("name");
+    const numInput = document.getElementById("num");
+    const addBtn = document.getElementById("add");
+
+    const clearBatBtn = document.getElementById("clearBat");
+    const clearDefBtn = document.getElementById("clearDef");
+    const resetBtn = document.getElementById("reset");
+    const printBtn = document.getElementById("print");
+
+    const batList = document.getElementById("batList");
+    const defGrid = document.getElementById("defGrid");
+    const benchList = document.getElementById("benchList");
+    const absentList = document.getElementById("absentList");
+    const teamList = document.getElementById("teamList");
+    const inningTabs = document.getElementById("inningTabs");
+    const inningLabel = document.getElementById("inningLabel");
+
+    const homeTeamInput = document.getElementById("homeTeam");
+    const awayTeamInput = document.getElementById("awayTeam");
+    const gameScoreInput = document.getElementById("gameScore");
+    const addGameBtn = document.getElementById("addGameBtn");
+    const gamesList = document.getElementById("gamesList");
+    const recordSummary = document.getElementById("recordSummary");
+
+    const picker = document.getElementById("picker");
+    const pickerTitle = document.getElementById("pickerTitle");
+    const pickerList = document.getElementById("pickerList");
+    const clearAssignmentBtn = document.getElementById("clearAssignmentBtn");
+    const returnPlayerBtn = document.getElementById("returnPlayerBtn");
+    const closePickerBtn = document.getElementById("closePickerBtn");
+
+    const printBat = document.getElementById("printBat");
+    const printDefenseWrap = document.getElementById("printDefenseWrap");
+    const statusBar = document.getElementById("statusBar");
+
+    const params = new URLSearchParams(window.location.search);
+    const lineupId = sanitizeKey(params.get("lineup")) || "sequoia";
+    const lineupRef = ref(db, "lineups/" + lineupId);
+
+    let state = defaultState();
+    let currentInning = 0;
+    let context = null;
+    let hasLoadedOnce = false;
+    let saveInProgress = false;
+
+    function sanitizeKey(value) {
+      if (!value) return "";
+      return String(value).replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+    }
+
+    function setStatus(message, mode = "") {
+      statusBar.textContent = `Lineup: ${lineupId} — ${message}`;
+      statusBar.className = "statusBar" + (mode ? " " + mode : "");
+    }
+
+    function generateId() {
+      return "p_" + Math.random().toString(36).slice(2, 11);
+    }
+
+    function generateGameId() {
+      return "g_" + Math.random().toString(36).slice(2, 11);
+    }
+
+    function getCurrentDefense() {
+      if (!Array.isArray(state.defenses)) {
+        state.defenses = Array.from({ length: inningCount }, () => emptyDefense());
+      }
+
+      if (!state.defenses[currentInning]) {
+        state.defenses[currentInning] = emptyDefense();
+      }
+
+      return state.defenses[currentInning];
+    }
+
+    function normalizeDefenseObject(rawDef) {
+      const clean = emptyDefense();
+      if (!rawDef || typeof rawDef !== "object") return clean;
+
+      positions.forEach(pos => {
+        clean[pos] = rawDef[pos] ?? null;
+      });
+
+      return clean;
+    }
+
+    function normalizeState(raw) {
+      const base = defaultState();
+
+      if (!raw || typeof raw !== "object") return base;
+
+      base.teamName = String(raw.teamName || "Sequoia");
+
+      if (Array.isArray(raw.players)) {
+        base.players = raw.players.map(p => ({
+          id: String(p.id || generateId()),
+          name: String(p.name || ""),
+          num: String(p.num || "")
+        }));
+      }
+
+      if (Array.isArray(raw.bat)) {
+        base.bat = base.bat.map((_, i) => raw.bat[i] ?? null);
+      }
+
+      if (Array.isArray(raw.defenses)) {
+        base.defenses = Array.from({ length: inningCount }, (_, i) =>
+          normalizeDefenseObject(raw.defenses[i])
+        );
+      } else if (raw.def && typeof raw.def === "object") {
+        base.defenses[0] = normalizeDefenseObject(raw.def);
+      }
+
+      if (Array.isArray(raw.absent)) {
+        base.absent = raw.absent.map(String);
+      }
+
+      if (Array.isArray(raw.games)) {
+        base.games = raw.games.map(g => ({
+          id: String(g.id || generateGameId()),
+          home: String(g.home || ""),
+          away: String(g.away || ""),
+          score: String(g.score || "")
+        }));
+      }
+
+      return base;
+    }
+
+    function getPlayer(id) {
+      return state.players.find(p => p.id === id) || null;
+    }
+
+    function isAbsent(id) {
+      return state.absent.includes(id);
+    }
+
+    function getBenchPlayers() {
+      const usedDefense = Object.values(getCurrentDefense());
+      return state.players
+        .filter(p => !isAbsent(p.id) && !usedDefense.includes(p.id))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    function getAbsentPlayers() {
+      return state.players
+        .filter(p => isAbsent(p.id))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    async function saveState() {
+      saveInProgress = true;
+      setStatus("Saving…");
+      try {
+        await set(lineupRef, state);
+        setStatus("Live sync connected", "good");
+      } catch (err) {
+        console.error(err);
+        setStatus("Save failed", "bad");
+        alert("Could not save to Firebase. Check your database rules and hosting.");
+      } finally {
+        saveInProgress = false;
+      }
+    }
+
+    function renderBat() {
+      batList.innerHTML = "";
+
+      for (let i = 0; i < slots; i++) {
+        const id = state.bat[i];
+        const player = getPlayer(id);
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        if (!player || isAbsent(id)) {
+          row.classList.add("empty");
+          row.textContent = (i + 1) + ". Tap to assign";
+        } else {
+          row.innerHTML = `
+            <span>${i + 1}. ${escapeHtml(player.name)}</span>
+            <span>${escapeHtml(player.num || "-")}</span>
+          `;
+        }
+
+        row.onclick = () => openPicker("bat", i);
+        batList.appendChild(row);
+      }
+    }
+
+    function renderInningTabs() {
+      inningTabs.innerHTML = "";
+
+      for (let i = 0; i < inningCount; i++) {
+        const btn = document.createElement("button");
+        btn.className = "inningTab" + (i === currentInning ? " active" : "");
+        btn.type = "button";
+        btn.textContent = `Inning ${i + 1}`;
+        btn.onclick = () => {
+          currentInning = i;
+          renderDef();
+        };
+        inningTabs.appendChild(btn);
+      }
+
+      inningLabel.textContent = `Inning ${currentInning + 1} Defense`;
+    }
+
+    function renderDef() {
+      renderInningTabs();
+      defGrid.innerHTML = "";
+
+      const def = getCurrentDefense();
+
+      positions.forEach(pos => {
+        const id = def[pos];
+        const player = getPlayer(id);
+
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        if (!player || isAbsent(id)) {
+          cell.innerHTML = `
+            <div class="pos">${pos}</div>
+            <div>Tap</div>
+          `;
+        } else {
+          cell.innerHTML = `
+            <div class="pos">${pos}</div>
+            <div>${escapeHtml(player.name)}</div>
+            <div>${escapeHtml(player.num || "-")}</div>
+          `;
+        }
+
+        cell.onclick = () => openPicker("def", pos);
+        defGrid.appendChild(cell);
+      });
+
+      renderBench();
+      renderAbsent();
+    }
+
+    function renderBench() {
+      benchList.innerHTML = "";
+
+      const benchPlayers = getBenchPlayers();
+
+      if (benchPlayers.length === 0) {
+        const row = document.createElement("div");
+        row.className = "row empty";
+        row.textContent = "No bench players";
+        benchList.appendChild(row);
+        return;
+      }
+
+      benchPlayers.forEach(player => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <span>${escapeHtml(player.name)}</span>
+          <span>${escapeHtml(player.num || "-")}</span>
+        `;
+        benchList.appendChild(row);
+      });
+    }
+
+    function renderAbsent() {
+      absentList.innerHTML = "";
+
+      const absentPlayers = getAbsentPlayers();
+
+      if (absentPlayers.length === 0) {
+        const row = document.createElement("div");
+        row.className = "row empty";
+        row.textContent = "No absent players";
+        absentList.appendChild(row);
+        return;
+      }
+
+      absentPlayers.forEach(player => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <span>${escapeHtml(player.name)}</span>
+          <span>${escapeHtml(player.num || "-")}</span>
+        `;
+        row.onclick = () => openPicker("absent", player.id);
+        absentList.appendChild(row);
+      });
+    }function renderTeam() {
+      teamList.innerHTML = "";
+
+      const sortedPlayers = [...state.players].sort((a, b) => a.name.localeCompare(b.name));
+
+      if (sortedPlayers.length === 0) {
+        const row = document.createElement("div");
+        row.className = "row empty";
+        row.textContent = "No players added yet";
+        teamList.appendChild(row);
+        return;
+      }
+
+      sortedPlayers.forEach(player => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const left = document.createElement("span");
+        let label = `${player.name} (${player.num || "-"})`;
+        if (isAbsent(player.id)) {
+          label += " - Absent";
+        }
+        left.textContent = label;
+
+        const actions = document.createElement("div");
+        actions.className = "teamActions";
+
+        const editBtn = document.createElement("button");
+        editBtn.className = "miniBtn";
+        editBtn.type = "button";
+        editBtn.textContent = "Edit";
+        editBtn.onclick = (e) => {
+          e.stopPropagation();
+          editPlayer(player.id);
+        };
+
+        const absentBtn = document.createElement("button");
+        absentBtn.className = isAbsent(player.id) ? "miniBtn" : "miniBtn orange";
+        absentBtn.type = "button";
+        absentBtn.textContent = isAbsent(player.id) ? "Active" : "Absent";
+        absentBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (isAbsent(player.id)) {
+            returnPlayer(player.id);
+          } else {
+            markPlayerAbsent(player.id);
+          }
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "miniBtn danger";
+        delBtn.type = "button";
+        delBtn.textContent = "Delete";
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          deletePlayer(player.id);
+        };
+
+        actions.appendChild(editBtn);
+        actions.appendChild(absentBtn);
+        actions.appendChild(delBtn);
+
+        row.appendChild(left);
+        row.appendChild(actions);
+
+        teamList.appendChild(row);
+      });
+    }
+
+    function parseScore(score) {
+      const match = String(score).trim().match(/^(\d+)\s*[-:]\s*(\d+)$/);
+      if (!match) return null;
+      return {
+        home: Number(match[1]),
+        away: Number(match[2])
+      };
+    }
+
+    function getGameResult(game) {
+      const home = String(game.home || "").trim().toLowerCase();
+      const away = String(game.away || "").trim().toLowerCase();
+      const team = String(state.teamName || "").trim().toLowerCase();
+      const parsed = parseScore(game.score);
+
+      if (!parsed || !team) return null;
+
+      let ourScore = null;
+      let oppScore = null;
+
+      if (home === team) {
+        ourScore = parsed.home;
+        oppScore = parsed.away;
+      } else if (away === team) {
+        ourScore = parsed.away;
+        oppScore = parsed.home;
+      } else {
+        return null;
+      }
+
+      if (ourScore > oppScore) return "W";
+      if (ourScore < oppScore) return "L";
+      return "T";
+    }
+
+    function getRecord() {
+      let wins = 0;
+      let ties = 0;
+      let losses = 0;
+
+      state.games.forEach(game => {
+        const result = getGameResult(game);
+        if (result === "W") wins++;
+        if (result === "T") ties++;
+        if (result === "L") losses++;
+      });
+
+      return { wins, ties, losses };
+    }
+
+    function renderStandings() {
+      gamesList.innerHTML = "";
+
+      if (!Array.isArray(state.games) || state.games.length === 0) {
+        const row = document.createElement("div");
+        row.className = "row empty";
+        row.textContent = "No games added yet";
+        gamesList.appendChild(row);
+      } else {
+        state.games.forEach(game => {
+          const result = getGameResult(game);
+
+          const card = document.createElement("div");
+          card.className = "gameCard";
+
+          const left = document.createElement("div");
+          left.className = "gameMain";
+          left.innerHTML = `
+            <div class="gameTeams">${escapeHtml(game.home)} vs ${escapeHtml(game.away)}</div>
+            <div class="gameScore">Score: ${escapeHtml(game.score || "-")}</div>
+          `;
+
+          const actions = document.createElement("div");
+          actions.className = "teamActions";
+
+          const resultBadge = document.createElement("div");
+          resultBadge.className = "gameResult";
+          resultBadge.textContent = result || "-";
+
+          const editBtn = document.createElement("button");
+          editBtn.className = "miniBtn";
+          editBtn.type = "button";
+          editBtn.textContent = "Edit";
+          editBtn.onclick = () => editGame(game.id);
+
+          const delBtn = document.createElement("button");
+          delBtn.className = "miniBtn danger";
+          delBtn.type = "button";
+          delBtn.textContent = "Delete";
+          delBtn.onclick = () => deleteGame(game.id);
+
+          actions.appendChild(resultBadge);
+          actions.appendChild(editBtn);
+          actions.appendChild(delBtn);
+
+          card.appendChild(left);
+          card.appendChild(actions);
+          gamesList.appendChild(card);
+        });
+      }
+
+      const record = getRecord();
+      const recordTitle = document.querySelector(".recordTitle");
+      recordTitle.textContent = `${state.teamName || "Team"} Record`;
+      recordSummary.textContent = `${record.wins} / ${record.ties} / ${record.losses}`;
+    }
+
+    function render() {
+      teamNameInput.value = state.teamName || "";
+      renderBat();
+      renderDef();
+      renderTeam();
+      renderStandings();
+    }
+
+    function openPicker(type, key) {
+      context = { type, key };
+      pickerList.innerHTML = "";
+
+      clearAssignmentBtn.style.display = "none";
+      returnPlayerBtn.style.display = "none";
+
+      if (type === "bat") {
+        pickerTitle.textContent = `Select Batter #${key + 1}`;
+        clearAssignmentBtn.style.display = "block";
+        buildPlayerPickerList();
+      } else if (type === "def") {
+        pickerTitle.textContent = `Select ${key} — Inning ${currentInning + 1}`;
+        clearAssignmentBtn.style.display = "block";
+        buildPlayerPickerList();
+      } else if (type === "absent") {
+        const player = getPlayer(key);
+        pickerTitle.textContent = player ? player.name : "Absent Player";
+        returnPlayerBtn.style.display = "block";
+
+        const item = document.createElement("div");
+        item.className = "modalItem";
+        item.innerHTML = `
+          <span>${player ? escapeHtml(player.name) : ""} (${player ? escapeHtml(player.num || "-") : ""})</span>
+          <span>Absent</span>
+        `;
+        pickerList.appendChild(item);
+      }
+
+      picker.style.display = "flex";
+    }
+
+    function buildPlayerPickerList() {
+      const players = [...state.players]
+        .filter(player => !isAbsent(player.id))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (players.length === 0) {
+        const item = document.createElement("div");
+        item.className = "modalItem";
+        item.innerHTML = `<span>No active players available</span><span></span>`;
+        pickerList.appendChild(item);
+        return;
+      }
+
+      players.forEach(player => {
+        const item = document.createElement("div");
+        item.className = "modalItem";
+
+        const batIndex = state.bat.indexOf(player.id);
+        const def = getCurrentDefense();
+        const defPos = positions.find(pos => def[pos] === player.id);
+
+        const tags = [];
+        if (batIndex !== -1) tags.push("#" + (batIndex + 1));
+        if (defPos) tags.push(defPos);
+
+        item.innerHTML = `
+          <span>${escapeHtml(player.name)} (${escapeHtml(player.num || "-")})</span>
+          <span>${escapeHtml(tags.join(", "))}</span>
+        `;
+
+        item.onclick = () => assignPlayer(player.id);
+        pickerList.appendChild(item);
+      });
+    }
+
+    function closePicker() {
+      picker.style.display = "none";
+      context = null;
+    }
+
+    async function assignPlayer(playerId) {
+      if (!context) return;
+
+      if (context.type === "bat") {
+        const oldBatIndex = state.bat.indexOf(playerId);
+        if (oldBatIndex !== -1) {
+          state.bat[oldBatIndex] = null;
+        }
+        state.bat[context.key] = playerId;
+      }
+
+      if (context.type === "def") {
+        const def = getCurrentDefense();
+
+        positions.forEach(pos => {
+          if (def[pos] === playerId) {
+            def[pos] = null;
+          }
+        });
+
+        def[context.key] = playerId;
+      }
+
+      closePicker();
+      render();
+      await saveState();
+    }
+
+    async function clearAssignment() {
+      if (!context) return;
+
+      if (context.type === "bat") {
+        state.bat[context.key] = null;
+      }
+
+      if (context.type === "def") {
+        const def = getCurrentDefense();
+        def[context.key] = null;
+      }
+
+      closePicker();
+      render();
+      await saveState();
+    }
+
+    async function markPlayerAbsent(playerId) {
+      if (!playerId) return;
+      if (isAbsent(playerId)) return;
+
+      state.absent.push(playerId);
+
+      state.bat = state.bat.map(id => id === playerId ? null : id);
+
+      state.defenses.forEach(def => {
+        positions.forEach(pos => {
+          if (def[pos] === playerId) {
+            def[pos] = null;
+          }
+        });
+      });
+
+      render();
+      await saveState();
+    }
+
+    async function returnPlayer(playerId) {
+      state.absent = state.absent.filter(id => id !== playerId);
+      closePicker();
+      render();
+      await saveState();
+    }
+
+    async function editPlayer(id) {
+      const player = getPlayer(id);
+      if (!player) return;
+
+      const newName = window.prompt("Edit player name:", player.name);
+      if (newName === null) return;
+
+      const newNum = window.prompt("Edit jersey number:", player.num || "");
+      if (newNum === null) return;
+
+      const trimmedName = newName.trim();
+      if (trimmedName) {
+        player.name = trimmedName;
+      }
+      player.num = newNum.trim();
+
+      render();
+      await saveState();
+    }
+
+    async function deletePlayer(id) {
+      const player = getPlayer(id);
+      if (!player) return;
+
+      const ok = window.confirm(`Delete ${player.name}?`);
+      if (!ok) return;
+
+      state.players = state.players.filter(p => p.id !== id);
+      state.bat = state.bat.map(slot => slot === id ? null : slot);
+
+      state.defenses.forEach(def => {
+        positions.forEach(pos => {
+          if (def[pos] === id) {
+            def[pos] = null;
+          }
+        });
+      });
+
+      state.absent = state.absent.filter(absentId => absentId !== id);
+
+      render();
+      await saveState();
+    }async function addGame() {
+      const home = homeTeamInput.value.trim();
+      const away = awayTeamInput.value.trim();
+      const score = gameScoreInput.value.trim();
+
+      if (!home || !away || !score) {
+        alert("Please fill in Home, Away, and Score.");
+        return;
+      }
+
+      if (!parseScore(score)) {
+        alert("Use score format like 8-6.");
+        return;
+      }
+
+      state.games.push({
+        id: generateGameId(),
+        home,
+        away,
+        score
+      });
+
+      homeTeamInput.value = "";
+      awayTeamInput.value = "";
+      gameScoreInput.value = "";
+
+      render();
+      await saveState();
+    }
+
+    async function editGame(id) {
+      const game = state.games.find(g => g.id === id);
+      if (!game) return;
+
+      const newHome = window.prompt("Edit home team:", game.home);
+      if (newHome === null) return;
+
+      const newAway = window.prompt("Edit away team:", game.away);
+      if (newAway === null) return;
+
+      const newScore = window.prompt("Edit score (Home-Away):", game.score);
+      if (newScore === null) return;
+
+      if (!newHome.trim() || !newAway.trim() || !newScore.trim()) {
+        alert("Home, Away, and Score are required.");
+        return;
+      }
+
+      if (!parseScore(newScore.trim())) {
+        alert("Use score format like 8-6.");
+        return;
+      }
+
+      game.home = newHome.trim();
+      game.away = newAway.trim();
+      game.score = newScore.trim();
+
+      render();
+      await saveState();
+    }
+
+    async function deleteGame(id) {
+      const game = state.games.find(g => g.id === id);
+      if (!game) return;
+
+      const ok = window.confirm(`Delete game: ${game.home} vs ${game.away}?`);
+      if (!ok) return;
+
+      state.games = state.games.filter(g => g.id !== id);
+      render();
+      await saveState();
+    }
+
+    function buildPrintSheet() {
+      let batHTML = "<tr><th>#</th><th>Player</th><th>Number</th></tr>";
+
+      state.bat.forEach((id, index) => {
+        const player = getPlayer(id);
+        batHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${player && !isAbsent(id) ? escapeHtml(player.name) : ""}</td>
+            <td>${player && !isAbsent(id) ? escapeHtml(player.num || "-") : ""}</td>
+          </tr>
+        `;
+      });
+
+      printBat.innerHTML = batHTML;
+
+      let defenseHTML = "";
+
+      state.defenses.forEach((def, inningIndex) => {
+        let defTable = `
+          <h3>Defense - Inning ${inningIndex + 1}</h3>
+          <table>
+            <tr><th>Position</th><th>Player</th><th>Number</th></tr>
+        `;
+
+        positions.forEach(pos => {
+          const id = def[pos];
+          const player = getPlayer(id);
+          defTable += `
+            <tr>
+              <td>${pos}</td>
+              <td>${player && !isAbsent(id) ? escapeHtml(player.name) : ""}</td>
+              <td>${player && !isAbsent(id) ? escapeHtml(player.num || "-") : ""}</td>
+            </tr>
+          `;
+        });
+
+        defTable += `</table>`;
+        defenseHTML += defTable;
+      });
+
+      printDefenseWrap.innerHTML = defenseHTML;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    addBtn.onclick = async () => {
+      const name = nameInput.value.trim();
+      const num = numInput.value.trim();
+
+      if (!name) return;
+
+      state.players.push({
+        id: generateId(),
+        name,
+        num
+      });
+
+      nameInput.value = "";
+      numInput.value = "";
+      nameInput.focus();
+
+      render();
+      await saveState();
+    };
+
+    addGameBtn.onclick = addGame;
+
+    teamNameInput.addEventListener("change", async () => {
+      state.teamName = teamNameInput.value.trim() || "Sequoia";
+      render();
+      await saveState();
+    });
+
+    nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        addBtn.click();
+      }
+    });
+
+    numInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        addBtn.click();
+      }
+    });
+
+    homeTeamInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addGame();
+    });
+
+    awayTeamInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addGame();
+    });
+
+    gameScoreInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") addGame();
+    });
+
+    clearBatBtn.onclick = async () => {
+      state.bat = Array(slots).fill(null);
+      render();
+      await saveState();
+    };
+
+    clearDefBtn.onclick = async () => {
+      state.defenses[currentInning] = emptyDefense();
+      render();
+      await saveState();
+    };
+
+    resetBtn.onclick = async () => {
+      const ok = window.confirm("Reset roster, lineup, and standings?");
+      if (!ok) return;
+
+      state = defaultState();
+      currentInning = 0;
+      render();
+      await saveState();
+    };
+
+    printBtn.onclick = () => {
+      buildPrintSheet();
+      window.print();
+    };
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.onclick = () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("active"));
+
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.panel).classList.add("active");
+      };
+    });
+
+    clearAssignmentBtn.onclick = clearAssignment;
+
+    returnPlayerBtn.onclick = () => {
+      if (context && context.type === "absent") {
+        returnPlayer(context.key);
+      }
+    };
+
+    closePickerBtn.onclick = closePicker;
+
+    picker.onclick = (e) => {
+      if (e.target === picker) {
+        closePicker();
+      }
+    };
+
+    onValue(lineupRef, async (snapshot) => {
+      const data = snapshot.val();
+
+      if (data === null) {
+        if (!hasLoadedOnce && !saveInProgress) {
+          state = defaultState();
+          render();
+          await saveState();
+        }
+      } else {
+        state = normalizeState(data);
+        render();
+        setStatus("Live sync connected", "good");
+      }
+
+      hasLoadedOnce = true;
+    }, (error) => {
+      console.error(error);
+      setStatus("Connection failed", "bad");
+    });
+
+    render();
+  </script>
+</body>
+</html>
